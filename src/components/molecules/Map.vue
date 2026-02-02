@@ -13,7 +13,7 @@ export default {
     },
     mounted() {
         // 카카오 디벨로퍼에서 발급받은 API_KEY
-        const API_KEY = "fc18e02b0b1d26051cb4d182ffc0021e";
+        const API_KEY = "API_KEY";
 
         if (window.kakao && window.kakao.maps) {
             this.initMap();
@@ -77,4 +77,5 @@ export default {
     box-shadow: 0px 0px 24px 5px rgba(0, 0, 0, 0.1);
     background-color: beige;
 }
+
 </style>
