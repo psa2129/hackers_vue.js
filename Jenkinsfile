@@ -19,5 +19,11 @@ pipeline {
                 echo 'deploying the application...'
             }
         }
+
+         stage('Docker Build') {
+            steps {
+               sh 'docker build -t your-image-name .'
+            }
+        }
     }
 }
