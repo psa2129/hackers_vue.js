@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "amdp-registry.skala-ai.com/skala26a-ai2/sk041-vue"
+        IMAGE_TAG = "latest"
+    }
+
     stages {
         stage('build') {
             steps {
@@ -17,12 +22,18 @@ pipeline {
         stage('deploy') {
             steps {
                 echo 'deploying the application...'
-            }
-        }
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
 
-         stage('Docker Build') {
-            steps {
-               sh 'docker build -t your-image-name .'
+                withCredentials([usernamePassword(
+                    credentialsId: 'harbor-login',
+                    usernameVariable: 'HARBOR_USERNAME',
+                    passwordVariable: 'HARBOR_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$HARBOR_PASSWORD" | docker login amdp-registry.skala-ai.com -u "$HARBOR_USERNAME" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
+                }
             }
         }
     }
