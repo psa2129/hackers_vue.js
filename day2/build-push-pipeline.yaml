@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-and-push-sk041
+  namespace: class-2
+spec:
+  params:
+    - name: image-url
+      type: string
+    - name: dockerfile-path
+      type: string
+      default: "./Dockerfile"
+  workspaces:
+    - name: source
+  tasks:
+    - name: build-push
+      taskRef:
+        kind: Task
+        name: kaniko
+      params:
+        - name: IMAGE
+          value: $(params.image-url)
+        - name: DOCKERFILE
+          value: $(params.dockerfile-path)
+      workspaces:
+        - name: source
+          workspace: source

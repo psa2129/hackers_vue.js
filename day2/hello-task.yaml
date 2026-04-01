@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: hello-task-sk041
+  namespace: class-2
+spec:
+  steps:
+    - name: print-message
+      image: alpine:3.19
+      script: |
+        #!/bin/sh
+        echo "Hello from Tekton!"
