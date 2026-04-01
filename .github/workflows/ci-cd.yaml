@@ -1,4 +1,4 @@
-name: Build and Deploy via Harbor
+name: Build and Deploy to EKS via Harbor
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  APP_NAME: sk041-vue
+  APP_NAME: sample-app
 
 jobs:
   build-and-deploy:
@@ -18,7 +18,11 @@ jobs:
       HARBOR_USERNAME: ${{ secrets.HARBOR_USERNAME }}
       HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
 
-      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
       K8S_NAMESPACE: ${{ secrets.K8S_NAMESPACE }}
 
     steps:
@@ -38,8 +42,18 @@ jobs:
 
       - name: Build application
         run: |
-          echo "Skipping package build for this practice"
-          echo "Using current Dockerfile-based image build"
+          echo "Replace with your actual build command"
+
+          # Gradle example
+          # chmod +x gradlew
+          # ./gradlew clean build -x test
+
+          # Maven example
+          # mvn clean package -DskipTests
+
+          # Node.js example
+          # npm ci
+          # npm run build
 
       - name: Log in to Harbor
         run: |
@@ -56,22 +70,30 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: latest
+          version: 'latest'
 
-      - name: Configure kubeconfig
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig for EKS
         run: |
-          mkdir -p ~/.kube
-          echo "${KUBE_CONFIG_DATA}" | base64 -d > ~/.kube/config
+          aws eks update-kubeconfig \
+            --region ${AWS_REGION} \
+            --name ${EKS_CLUSTER_NAME}
 
       - name: Render deployment manifest
         run: |
           cp deploy/deployment.yaml deploy/deployment-rendered.yaml
           sed -i "s|__IMAGE__|${FULL_IMAGE}|g" deploy/deployment-rendered.yaml
 
-      - name: Deploy to Kubernetes
+      - name: Deploy to EKS
         run: |
-          kubectl apply -n ${K8S_NAMESPACE} -f deploy/deployment-rendered.yaml --validate=false
-          kubectl apply -n ${K8S_NAMESPACE} -f deploy/service.yaml --validate=false
+          kubectl apply -n ${K8S_NAMESPACE} -f deploy/deployment-rendered.yaml
+          kubectl apply -n ${K8S_NAMESPACE} -f deploy/service.yaml
 
       - name: Check rollout status
         run: |
