@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sk041-vue
+  namespace: class-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sk041-vue
+  template:
+    metadata:
+      labels:
+        app: sk041-vue
+    spec:
+      imagePullSecrets:
+        - name: harbor-secret
+      containers:
+        - name: sk041-vue
+          image: __IMAGE__
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
