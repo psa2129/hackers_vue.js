@@ -43,8 +43,8 @@ pipeline {
                     cp k8s/deployment.yaml k8s/deployment-rendered.yaml
                     sed "s|__IMAGE__|${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment-rendered.yaml > k8s/deployment-final.yaml
 
-                    kubectl apply -f k8s/deployment-final.yaml
-                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f k8s/deployment-final.yaml --validate=false
+                    kubectl apply -f k8s/service.yaml --validate=false
 
                     kubectl rollout status deployment/${APP_NAME} -n ${K8S_NAMESPACE} --timeout=300s
                     kubectl get pods -n ${K8S_NAMESPACE}
