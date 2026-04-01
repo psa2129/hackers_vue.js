@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  APP_NAME: sample-app
+  APP_NAME: sk041-vue
 
 jobs:
   build-and-deploy:
