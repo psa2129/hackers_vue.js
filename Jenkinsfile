@@ -23,32 +23,31 @@ pipeline {
 
         stage('deploy') {
             steps {
-                echo 'deploying the application...'
+            echo 'deploying the application...'
 
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+            sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
 
-                withCredentials([usernamePassword(
-                    credentialsId: 'harbor-login',
-                    usernameVariable: 'HARBOR_USERNAME',
-                    passwordVariable: 'HARBOR_PASSWORD'
-                )]) {
-                    sh '''
-                        echo "$HARBOR_PASSWORD" | docker login amdp-registry.skala-ai.com -u "$HARBOR_USERNAME" --password-stdin
-                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                        docker logout amdp-registry.skala-ai.com
-                    '''
-                }
-
+            withCredentials([usernamePassword(
+                credentialsId: 'harbor-login',
+                usernameVariable: 'HARBOR_USERNAME',
+                passwordVariable: 'HARBOR_PASSWORD'
+            )]) {
                 sh '''
-                    cp k8s/deployment.yaml k8s/deployment-rendered.yaml
-                    sed "s|__IMAGE__|${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment-rendered.yaml > k8s/deployment-final.yaml
-
-                    kubectl apply -f k8s/deployment-final.yaml --validate=false
-                    kubectl apply -f k8s/service.yaml --validate=false
-
-                    kubectl rollout status deployment/${APP_NAME} -n ${K8S_NAMESPACE} --timeout=300s
-                    kubectl get pods -n ${K8S_NAMESPACE}
+                echo "$HARBOR_PASSWORD" | docker login amdp-registry.skala-ai.com -u "$HARBOR_USERNAME" --password-stdin
+                docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                docker logout amdp-registry.skala-ai.com
                 '''
+            }
+
+            sh '''
+                cp k8s/deployment.yaml k8s/deployment-rendered.yaml
+                sed "s|__IMAGE__|${IMAGE_NAME}:${IMAGE_TAG}|g" k8s/deployment-rendered.yaml > k8s/deployment-final.yaml
+
+                kubectl apply -f k8s/deployment-final.yaml --validate=false -n class-2
+                kubectl apply -f k8s/service.yaml --validate=false -n class-2
+
+                kubectl rollout status deployment/sk041-vue -n class-2 --timeout=300s
+            '''
             }
         }
     }
